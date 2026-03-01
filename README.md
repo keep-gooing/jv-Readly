@@ -17,18 +17,35 @@ Users can browse books, search them by category, add them to the shopping cart, 
 - **Liquibase** 4.x - Database change management
 - **JUnit & Mockito** 5 / 5.18.0 - For unit testing
 - **Testcontainers** 1.20.1 - For integration testing with real databases
+- **Spring AI** - Framework for AI engineering in Java
+- **Ollama** - Local LLM (Large Language Model) runner
+- **PgVector** - PostgreSQL extension for vector similarity search
 
-- ## Key Functionalities
-- ### For users
+## Key Functionalities
 
-- **Book browsing**: Browse books and search them by category 
+### For users
+- **Book browsing**: Browse books and search them by category.
 - **Cart management**: Add books to shopping cart, remove them, or adjust the desired quantity.
 - **Order management**: Place orders for the books in shopping cart and track their status. 
+- **AI-Powered Semantic Search**: Find books not just by title, but by mood, plot descriptions, or context using vector embeddings.
 
 ### For admins:
 - **Book management**: Add books, change information about them, delete them.
 - **Category management**: Add categories, change information about them, delete them.
-- **Order management**: Update orders status
+- **Order management**: Update orders status.
+
+## AI Capabilities & Implementation
+
+The project features a cutting-edge **Semantic Search System** that goes beyond traditional keyword matching. It allows users to find books based on context, mood, or abstract descriptions.
+
+### How it Works (RAG Architecture):
+- **Spring AI & Ollama:** The system integrates with a local **Ollama** runner using the `nomic-embed-text` model to transform book descriptions into multi-dimensional vector embeddings.
+- **PgVector:** These embeddings are stored in **PostgreSQL** using the `pgvector` extension.
+- **Vector Similarity Search:** When a user enters a query (e.g., "inspiring stories about magic"), the system converts the query into a vector and performs a mathematical similarity search in the database to find the most relevant matches.
+
+### Key AI Features:
+- **Admin-Only Indexing:** A secure endpoint allows administrators to synchronize the relational database with the vector store.
+- **Local Processing:** By using Ollama, all AI processing happens locally on the host machine, ensuring data privacy and zero API costs.
 
 ### Model diagram
 
@@ -49,8 +66,13 @@ Users can browse books, search them by category, add them to the shopping cart, 
     git clone git@github.com:keep-gooing/online-book-store.git
     cd online-book-store
     ```
+2. **Prepare AI models:**
+    ```bash
+    ollama pull nomic-embed-text
+    ollama pull llama3
+    ```
 
-2.  Create the .env file by copying .env.template and replacing placeholder values:
+3. Create the .env file by copying .env.template and replacing placeholder values:
        ```
       POSTGRES_USER=<your_postgres_user>
       POSTGRES_PASSWORD=<your_postgres_password>
@@ -66,12 +88,12 @@ Users can browse books, search them by category, add them to the shopping cart, 
       JWT_SECRET=<your_jwt_secret>
     ```
 
-3. Build and start the containers using Docker Compose:
+4. Build and start the containers using Docker Compose:
     ```bash
     docker-compose up --build
     ```
 
-4. The application will be accessible at `http://localhost:<YOUR_PORT>/api`.
+5. The application will be accessible at `http://localhost:<YOUR_PORT>/api`.
 
 ### Running Tests:
 
@@ -79,21 +101,21 @@ Users can browse books, search them by category, add them to the shopping cart, 
     ```bash
     mvn clean test
     ```
+
 Swagger UI is available for testing the API and is accessible at `http://localhost:8080/api/swagger-ui/index.html#/`. 
 It includes endpoints for all available operations, such as browsing books, managing the cart, and handling orders.
 
 ## Challenges Faced
 
-Challenges Faced During Development
-Database Migration Difficulties
+### Database Migration Difficulties
 Issue: Encountered ***complications*** with database schema creation while using Liquibase for change management. The application ***failed*** to generate required tables.
 Resolution: Conducted a thorough ***review*** of the YAML-based Liquibase scripts and tested them in a ***local environment***, which helped identify and fix errors. As a result, migrations were successfully applied without further issues.
 
-Testing Environment with Docker and Testcontainers
+### Testing Environment with Docker and Testcontainers
 Issue: Faced ***complexities*** in setting up a Docker-based testing environment, especially regarding ***database*** connectivity and lifecycle.
 Resolution: Explored official documentation and real-world ***examples for Testcontainers***. This allowed proper configuration of containers, ensuring tests executed correctly in an ***isolated environment***.
 
-Spring Security Configuration
+### Spring Security Configuration
 Issue: Experienced ***access control*** errors due to misconfigured Spring Security settings, which led to unauthorized or blocked requests.
 Resolution: Refactored the security setup by incorporating the appropriate ***filters, URL patterns, and user roles***. These changes resolved the access problems and enforced the required ***security standards***.
 

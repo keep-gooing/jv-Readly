@@ -3,7 +3,7 @@ version: "3.8"
 services:
   postgresdb:
     platform: linux/arm64
-    image: postgres
+    image: pgvector/pgvector:pg16
     restart: unless-stopped
     env_file: ./.env
     environment:
@@ -13,13 +13,15 @@ services:
     ports:
       - $POSTGRES_LOCAL_PORT:$POSTGRES_DOCKER_PORT
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      test: [ "CMD-SHELL", "pg_isready -U $POSTGRES_USER -d $POSTGRES_DATABASE" ]
       interval: 30s
       timeout: 30s
       retries: 3
+
   app:
     depends_on:
-      - postgresdb
+      postgresdb:
+        condition: service_healthy
     restart: on-failure
     image: posts-service
     build: .
@@ -28,10 +30,12 @@ services:
       - $SPRING_LOCAL_PORT:$SPRING_DOCKER_PORT
       - $DEBUG_PORT:$DEBUG_PORT
     environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
       SPRING_APPLICATION_JSON: '{
         "spring.datasource.url"  : "jdbc:postgresql://postgresdb:$POSTGRES_DOCKER_PORT/$POSTGRES_DATABASE",
         "spring.datasource.username" : "$POSTGRES_USER",
         "spring.datasource.password" : "$POSTGRES_PASSWORD",
-        "spring.jpa.properties.hibernate.dialect" : "org.hibernate.dialect.PostgreSQLDialect"
+        "spring.jpa.properties.hibernate.dialect" : "org.hibernate.dialect.PostgreSQLDialect",
+        "spring.ai.vectorstore.pgvector.initialize-schema": "true"
       }'
       JAVA_TOOL_OPTIONS: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"
